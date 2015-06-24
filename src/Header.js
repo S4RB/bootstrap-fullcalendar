@@ -70,6 +70,13 @@ function Header(calendar, options) {
 						groupChildren = groupChildren.add($('<h2>&nbsp;</h2>')); // we always want it to take up height
 						isOnlyButtons = false;
 					}
+                    else if ($.isFunction(options.filters[buttonName])) {
+                        //Use callback to define custom header element - pass options as argument.
+                        var html = options.filters[buttonName](options);
+
+                        var element =  $("<span class='fc-header-"+buttonName+"'></span>").append(html);
+                        groupChildren = groupChildren.add(element);
+                    }
 					else {
 						viewSpec = calendar.getViewSpec(buttonName);
 
