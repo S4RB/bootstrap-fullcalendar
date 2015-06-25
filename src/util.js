@@ -105,7 +105,7 @@ function distributeHeight(els, availableHeight, shouldRedistribute) {
 		var newHeight = minOffset - (naturalOffset - naturalHeight); // subtract the margin/padding
 
 		if (naturalOffset < minOffset) { // we check this again because redistribution might have changed things
-			$(el).height(newHeight);
+			$(el).css('min-height', newHeight);
 		}
 	});
 }
