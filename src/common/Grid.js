@@ -627,15 +627,51 @@ var Grid = fc.Grid = RowRenderer.extend({
 	// Used by the `headHtml` method, via RowRenderer, for rendering the HTML of a day-of-week header cell
 	// TODO: move to another class. not applicable to all Grids
 	headCellHtml: function(cell) {
+        var self = this;
+
 		var view = this.view;
 		var date = cell.start;
 
+        // Set up the base classes for the header.
+        var classes = [
+            'fc-day-header',
+            view.widgetHeaderClass,
+            'fc-' + dayIDs[date.day()]
+        ];
+
+        // Get the current date so we can set a class that can be used for styling.
+        // Append the month to the end of the format so that we don't add the class to every month.
+        var currentDate = moment();
+        var formattedDate = currentDate.format(this.colHeadFormat + '/M');
+
+        // If the cells date is the current date, and a class so we have the option of styling it.
+        if(formattedDate === date.format(this.colHeadFormat + '/M')) {
+            classes.push('current-date');
+        }
+
+        // Wrap the header text so it can be styled better.
+        var dateText = htmlEscape(date.format(this.colHeadFormat))
+            .split(' ');
+        dateText.forEach(self.wrap);
+
 		return '' +
-			'<th class="fc-day-header ' + view.widgetHeaderClass + ' fc-' + dayIDs[date.day()] + '">' +
-				htmlEscape(date.format(this.colHeadFormat)) +
+			'<th class="' + classes.join(' ') + '">' +
+                dateText.join(' ') +
 			'</th>';
 	},
 
+    wrap: function(value, index, array) {
+        var classes = [];
+        // Check if the value is a date (i.e. 31 would be matched, Sun would not be)
+        if(value.match(/^([0-9]*)$/)) {
+            classes.push('fc-day-number-newline');
+        }
+
+        var spanObj = '<span class="' + classes.join(' ') + '">' + value + '</span>';
+
+        // Replace old array string with new array string wrapped in <span>
+        array[index] = spanObj;
+    },
 
 	// Renders the HTML for a single-day background cell
 	bgCellHtml: function(cell) {
@@ -645,9 +681,20 @@ var Grid = fc.Grid = RowRenderer.extend({
 
 		classes.unshift('fc-day', view.widgetContentClass);
 
-		return '<td class="' + classes.join(' ') + '"' +
-			' data-date="' + date.format('YYYY-MM-DD') + '"' + // if date has a time, won't format it
-			'></td>';
+        var result = '<td class="' + classes.join(' ') + '"' +
+            ' data-date="' + date.format('YYYY-MM-DD') + '"' + // if date has a time, won't format it
+            '>';
+        result += '<div class="fc-overlay-wrapper">';
+
+        if($.inArray('fc-today', classes) !== -1) {
+            result += '<div class="fc-now-marker-widget"></div>' +
+            '<div class="fc-now-marker-line"></div>';
+        }
+
+        result += '</div>';
+        result += '</td>';
+
+        return result;
 	},
 
 
