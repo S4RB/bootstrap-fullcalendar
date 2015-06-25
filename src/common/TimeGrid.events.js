@@ -141,21 +141,24 @@ TimeGrid.mixin({
 				) +
 			'>' +
 				'<div class="fc-content">' +
-					(timeText ?
-						'<div class="fc-time"' +
-						' data-start="' + htmlEscape(startTimeText) + '"' +
-						' data-full="' + htmlEscape(fullTimeText) + '"' +
-						'>' +
-							'<span>' + htmlEscape(timeText) + '</span>' +
-						'</div>' :
-						''
-						) +
 					(event.title ?
 						'<div class="fc-title">' +
 							htmlEscape(event.title) +
 						'</div>' :
 						''
 						) +
+                    (event.content ?
+                        '<div class="fc-text-content">' +
+                            htmlEscape(event.content) +
+                            (event.image ?
+                                '<div class="fc-text-image pull-right">' +
+                                '<img class="img-circle" src="' + htmlEscape(event.image) + '">' +
+                                '</div>' :
+                                    ''
+                                ) +
+                        '</div>' :
+                        ''
+                        ) +
 				'</div>' +
 				'<div class="fc-bg"/>' +
 				/* TODO: write CSS for this
@@ -164,10 +167,22 @@ TimeGrid.mixin({
 					''
 					) +
 				*/
-				(isResizableFromEnd ?
-					'<div class="fc-resizer fc-end-resizer" />' :
-					''
-					) +
+                (timeText ?
+                    '<div class="fc-time"' +
+                    ' data-start="' + htmlEscape(startTimeText) + '"' +
+                    ' data-full="' + htmlEscape(fullTimeText) + '"' +
+                    '>' +
+                    '<span>' + htmlEscape(fullTimeText) + '</span>' +
+                    '</div>' :
+                        ''
+                    ) +
+
+                (event.icon ?
+                    '<div class="fc-icon">' +
+                        '<i class="' + event.icon + '"></i>' +
+                    '</div>' :
+                        ''
+                    ) +
 			'</a>';
 	},
 
