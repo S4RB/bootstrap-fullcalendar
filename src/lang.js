@@ -100,6 +100,7 @@ var momComputableOptions = {
 
 		// strip the year off the edge, as well as other misc non-whitespace chars
 		format = format.replace(/^Y+[^\w\s]*|[^\w\s]*Y+$/g, '');
+        format = format.replace(/^M\//g, '');
 
 		if (fcOptions.isRTL) {
 			format += ' ddd'; // for RTL, add day-of-week to end
