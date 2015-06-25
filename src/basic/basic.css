@@ -33,6 +33,8 @@
 .fc-basic-view .fc-week-number,
 .fc-basic-view .fc-day-number {
 	padding: 0 2px;
+    font-size: 1em;
+    font-weight: normal;
 }
 
 .fc-basic-view td.fc-week-number span,
