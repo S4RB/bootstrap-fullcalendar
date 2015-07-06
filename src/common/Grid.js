@@ -684,14 +684,7 @@ var Grid = fc.Grid = RowRenderer.extend({
         var result = '<td class="' + classes.join(' ') + '"' +
             ' data-date="' + date.format('YYYY-MM-DD') + '"' + // if date has a time, won't format it
             '>';
-        result += '<div class="fc-overlay-wrapper">';
-
-        if($.inArray('fc-today', classes) !== -1) {
-            result += '<div class="fc-now-marker-widget"></div>' +
-            '<div class="fc-now-marker-line"></div>';
-        }
-
-        result += '</div>';
+        result += '<div class="fc-overlay-wrapper"></div>';
         result += '</td>';
 
         return result;

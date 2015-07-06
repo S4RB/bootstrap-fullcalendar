@@ -285,6 +285,7 @@ function Calendar_constructor(element, overrides) {
 	t.getView = getView;
 	t.option = option;
 	t.trigger = trigger;
+    t.setTimeline = setTimeline;
 
 
 
@@ -809,6 +810,50 @@ function Calendar_constructor(element, overrides) {
 		date = t.moment(dateInput);
 		renderView();
 	}
+
+    function strTimeToMinutes(str_time) {
+        var arr_time = str_time.split(":");
+        var hour = parseInt(arr_time[0]);
+        var minutes = parseInt(arr_time[1]);
+        return((hour * 60) + minutes);
+    }
+
+    function setTimeline(view) {
+        //var parentDiv = $(".fc-slats:visible").parent();
+        var parentDiv = $(".fc-agenda-view").find(".fc-today").find(".fc-overlay-wrapper");
+        var timeline = parentDiv.children(".fc-now-marker-line");
+        var timelineWidget = parentDiv.children('.fc-now-marker-widget');
+
+        if (timeline.length == 0) { //if timeline isn't there, add it
+            timeline = $("<div>").addClass("fc-now-marker-line");
+            timelineWidget = $("<div>").addClass("fc-now-marker-widget");
+            parentDiv.prepend(timeline);
+            parentDiv.prepend(timelineWidget);
+        }
+
+        var curTime = new Date();
+
+        var curCalView = $("#calendar").fullCalendar('getView');
+        if (curCalView.intervalStart < curTime && curCalView.intervalEnd > curTime) {
+            timeline.show();
+            timelineWidget.show();
+        } else {
+            timeline.hide();
+            timelineWidget.hide();
+            return;
+        }
+
+        var calMinTimeInMinutes = strTimeToMinutes(curCalView.opt('minTime'));
+        var calMaxTimeInMinutes = strTimeToMinutes(curCalView.opt('maxTime'));
+
+        // Original
+        var curSeconds = (( ((curTime.getHours() * 60) + curTime.getMinutes()) - calMinTimeInMinutes) * 60) + curTime.getSeconds();
+        var percentOfDay = curSeconds / ((calMaxTimeInMinutes - calMinTimeInMinutes) * 60);
+        var topLoc = Math.floor($(".fc-slats").height() * percentOfDay);
+
+        timeline.css({top: topLoc + "px"});
+        timelineWidget.css({top: (topLoc - 5) + "px"});
+    }
 	
 	
 	function incrementDate(delta) {
