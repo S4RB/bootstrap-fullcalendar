@@ -1,7 +1,7 @@
 /*!
- * FullCalendar v2.3.2 Stylesheet
- * Docs & License: http://fullcalendar.io/
- * (c) 2015 Adam Shaw
+ * <%= meta.title %> v<%= meta.version %> Stylesheet
+ * Docs & License: <%= meta.homepage %>
+ * (c) <%= meta.copyright %>
  */
 
 
@@ -386,8 +386,11 @@ hr.fc-divider {
 .fc td {
 	border-style: solid;
 	border-width: 1px;
-	padding: 0;
 	vertical-align: top;
+}
+
+.fc td {
+    padding: 0;
 }
 
 .fc td.fc-today {
@@ -672,6 +675,41 @@ a.fc-more:hover {
 	padding: 10px;
 }
 
+.fc-day-number-newline {
+    display: block;
+    padding: 0;
+    font-size: 3em;
+    font-weight: normal;
+    line-height: 1em;
+}
+
+/* Grid Markers
+--------------------------------------------------------------------------------------------------*/
+
+.fc-overlay-wrapper {
+    position: relative;
+}
+
+.fc-now-marker-widget {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    left: -6px;
+    right: 0;
+    background-color: #000000;
+    border-radius: 100%;
+    top: -5px;
+}
+
+.fc-now-marker-line {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    right: 0;
+    border-top: 2px solid #000000;
+    top: 0;
+}
+
 /* Toolbar
 --------------------------------------------------------------------------------------------------*/
 
@@ -787,6 +825,8 @@ a.fc-more:hover {
 .fc-basic-view .fc-week-number,
 .fc-basic-view .fc-day-number {
 	padding: 0 2px;
+    font-size: 1em;
+    font-weight: normal;
 }
 
 .fc-basic-view td.fc-week-number span,
@@ -1067,3 +1107,5 @@ be a descendant of the grid when it is being dragged.
 .fc-time-grid-event .fc-resizer:after {
 	content: "=";
 }
+
+//@ sourceMappingURL=fullcalendar.css.map

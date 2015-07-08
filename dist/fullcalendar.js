@@ -1,7 +1,7 @@
 /*!
- * FullCalendar v2.3.2
- * Docs & License: http://fullcalendar.io/
- * (c) 2015 Adam Shaw
+ * <%= meta.title %> v<%= meta.version %>
+ * Docs & License: <%= meta.homepage %>
+ * (c) <%= meta.copyright %>
  */
 
 (function(factory) {
@@ -18,7 +18,7 @@
 
 ;;
 
-var fc = $.fullCalendar = { version: "2.3.2" };
+var fc = $.fullCalendar = { version: "<%= meta.version %>" };
 var fcViews = fc.views = {};
 
 
@@ -226,7 +226,7 @@ function distributeHeight(els, availableHeight, shouldRedistribute) {
 		var newHeight = minOffset - (naturalOffset - naturalHeight); // subtract the margin/padding
 
 		if (naturalOffset < minOffset) { // we check this again because redistribution might have changed things
-			$(el).height(newHeight);
+			$(el).css('min-height', newHeight);
 		}
 	});
 }
@@ -3425,15 +3425,51 @@ var Grid = fc.Grid = RowRenderer.extend({
 	// Used by the `headHtml` method, via RowRenderer, for rendering the HTML of a day-of-week header cell
 	// TODO: move to another class. not applicable to all Grids
 	headCellHtml: function(cell) {
+        var self = this;
+
 		var view = this.view;
 		var date = cell.start;
 
+        // Set up the base classes for the header.
+        var classes = [
+            'fc-day-header',
+            view.widgetHeaderClass,
+            'fc-' + dayIDs[date.day()]
+        ];
+
+        // Get the current date so we can set a class that can be used for styling.
+        // Append the month to the end of the format so that we don't add the class to every month.
+        var currentDate = moment();
+        var formattedDate = currentDate.format(this.colHeadFormat + '/M');
+
+        // If the cells date is the current date, and a class so we have the option of styling it.
+        if(formattedDate === date.format(this.colHeadFormat + '/M')) {
+            classes.push('current-date');
+        }
+
+        // Wrap the header text so it can be styled better.
+        var dateText = htmlEscape(date.format(this.colHeadFormat))
+            .split(' ');
+        dateText.forEach(self.wrap);
+
 		return '' +
-			'<th class="fc-day-header ' + view.widgetHeaderClass + ' fc-' + dayIDs[date.day()] + '">' +
-				htmlEscape(date.format(this.colHeadFormat)) +
+			'<th class="' + classes.join(' ') + '">' +
+                dateText.join(' ') +
 			'</th>';
 	},
 
+    wrap: function(value, index, array) {
+        var classes = [];
+        // Check if the value is a date (i.e. 31 would be matched, Sun would not be)
+        if(value.match(/^([0-9]*)$/)) {
+            classes.push('fc-day-number-newline');
+        }
+
+        var spanObj = '<span class="' + classes.join(' ') + '">' + value + '</span>';
+
+        // Replace old array string with new array string wrapped in <span>
+        array[index] = spanObj;
+    },
 
 	// Renders the HTML for a single-day background cell
 	bgCellHtml: function(cell) {
@@ -3443,9 +3479,13 @@ var Grid = fc.Grid = RowRenderer.extend({
 
 		classes.unshift('fc-day', view.widgetContentClass);
 
-		return '<td class="' + classes.join(' ') + '"' +
-			' data-date="' + date.format('YYYY-MM-DD') + '"' + // if date has a time, won't format it
-			'></td>';
+        var result = '<td class="' + classes.join(' ') + '"' +
+            ' data-date="' + date.format('YYYY-MM-DD') + '"' + // if date has a time, won't format it
+            '>';
+        result += '<div class="fc-overlay-wrapper"></div>';
+        result += '</td>';
+
+        return result;
 	},
 
 
@@ -6305,21 +6345,24 @@ TimeGrid.mixin({
 				) +
 			'>' +
 				'<div class="fc-content">' +
-					(timeText ?
-						'<div class="fc-time"' +
-						' data-start="' + htmlEscape(startTimeText) + '"' +
-						' data-full="' + htmlEscape(fullTimeText) + '"' +
-						'>' +
-							'<span>' + htmlEscape(timeText) + '</span>' +
-						'</div>' :
-						''
-						) +
 					(event.title ?
 						'<div class="fc-title">' +
 							htmlEscape(event.title) +
 						'</div>' :
 						''
 						) +
+                    (event.content ?
+                        '<div class="fc-text-content">' +
+                            htmlEscape(event.content) +
+                            (event.image ?
+                                '<div class="fc-text-image pull-right">' +
+                                '<img class="img-circle" src="' + htmlEscape(event.image) + '">' +
+                                '</div>' :
+                                    ''
+                                ) +
+                        '</div>' :
+                        ''
+                        ) +
 				'</div>' +
 				'<div class="fc-bg"/>' +
 				/* TODO: write CSS for this
@@ -6328,10 +6371,22 @@ TimeGrid.mixin({
 					''
 					) +
 				*/
-				(isResizableFromEnd ?
-					'<div class="fc-resizer fc-end-resizer" />' :
-					''
-					) +
+                (timeText ?
+                    '<div class="fc-time"' +
+                    ' data-start="' + htmlEscape(startTimeText) + '"' +
+                    ' data-full="' + htmlEscape(fullTimeText) + '"' +
+                    '>' +
+                    '<span>' + htmlEscape(fullTimeText) + '</span>' +
+                    '</div>' :
+                        ''
+                    ) +
+
+                (event.icon ?
+                    '<div class="fc-icon">' +
+                        '<i class="' + event.icon + '"></i>' +
+                    '</div>' :
+                        ''
+                    ) +
 			'</a>';
 	},
 
@@ -7809,6 +7864,7 @@ function Calendar_constructor(element, overrides) {
 	t.getView = getView;
 	t.option = option;
 	t.trigger = trigger;
+    t.setTimeline = setTimeline;
 
 
 
@@ -8333,6 +8389,50 @@ function Calendar_constructor(element, overrides) {
 		date = t.moment(dateInput);
 		renderView();
 	}
+
+    function strTimeToMinutes(str_time) {
+        var arr_time = str_time.split(":");
+        var hour = parseInt(arr_time[0]);
+        var minutes = parseInt(arr_time[1]);
+        return((hour * 60) + minutes);
+    }
+
+    function setTimeline(view) {
+        //var parentDiv = $(".fc-slats:visible").parent();
+        var parentDiv = $(".fc-agenda-view").find(".fc-today").find(".fc-overlay-wrapper");
+        var timeline = parentDiv.children(".fc-now-marker-line");
+        var timelineWidget = parentDiv.children('.fc-now-marker-widget');
+
+        if (timeline.length == 0) { //if timeline isn't there, add it
+            timeline = $("<div>").addClass("fc-now-marker-line");
+            timelineWidget = $("<div>").addClass("fc-now-marker-widget");
+            parentDiv.prepend(timeline);
+            parentDiv.prepend(timelineWidget);
+        }
+
+        var curTime = new Date();
+
+        var curCalView = $("#calendar").fullCalendar('getView');
+        if (curCalView.intervalStart < curTime && curCalView.intervalEnd > curTime) {
+            timeline.show();
+            timelineWidget.show();
+        } else {
+            timeline.hide();
+            timelineWidget.hide();
+            return;
+        }
+
+        var calMinTimeInMinutes = strTimeToMinutes(curCalView.opt('minTime'));
+        var calMaxTimeInMinutes = strTimeToMinutes(curCalView.opt('maxTime'));
+
+        // Original
+        var curSeconds = (( ((curTime.getHours() * 60) + curTime.getMinutes()) - calMinTimeInMinutes) * 60) + curTime.getSeconds();
+        var percentOfDay = curSeconds / ((calMaxTimeInMinutes - calMinTimeInMinutes) * 60);
+        var topLoc = Math.floor($(".fc-slats").height() * percentOfDay);
+
+        timeline.css({top: topLoc + "px"});
+        timelineWidget.css({top: (topLoc - 5) + "px"});
+    }
 	
 	
 	function incrementDate(delta) {
@@ -8640,6 +8740,7 @@ var momComputableOptions = {
 
 		// strip the year off the edge, as well as other misc non-whitespace chars
 		format = format.replace(/^Y+[^\w\s]*|[^\w\s]*Y+$/g, '');
+        format = format.replace(/^M\//g, '');
 
 		if (fcOptions.isRTL) {
 			format += ' ddd'; // for RTL, add day-of-week to end
@@ -8810,6 +8911,13 @@ function Header(calendar, options) {
 						groupChildren = groupChildren.add($('<h2>&nbsp;</h2>')); // we always want it to take up height
 						isOnlyButtons = false;
 					}
+                    else if ($.isFunction(options.filters[buttonName])) {
+                        //Use callback to define custom header element - pass options as argument.
+                        var html = options.filters[buttonName](options);
+
+                        var element =  $("<span class='fc-header-"+buttonName+"'></span>").append(html);
+                        groupChildren = groupChildren.add(element);
+                    }
 					else {
 						viewSpec = calendar.getViewSpec(buttonName);
 
@@ -8848,9 +8956,8 @@ function Header(calendar, options) {
 							}
 
 							classes = [
-								'fc-' + buttonName + '-button',
-								tm + '-button',
-								tm + '-state-default'
+								'btn',
+                                'btn-default'
 							];
 
 							button = $( // type="button" so that it doesn't submit a form
@@ -8863,61 +8970,18 @@ function Header(calendar, options) {
 									if (!button.hasClass(tm + '-state-disabled')) {
 
 										buttonClick();
-
-										// after the click action, if the button becomes the "active" tab, or disabled,
-										// it should never have a hover class, so remove it now.
-										if (
-											button.hasClass(tm + '-state-active') ||
-											button.hasClass(tm + '-state-disabled')
-										) {
-											button.removeClass(tm + '-state-hover');
-										}
 									}
-								})
-								.mousedown(function() {
-									// the *down* effect (mouse pressed in).
-									// only on buttons that are not the "active" tab, or disabled
-									button
-										.not('.' + tm + '-state-active')
-										.not('.' + tm + '-state-disabled')
-										.addClass(tm + '-state-down');
-								})
-								.mouseup(function() {
-									// undo the *down* effect
-									button.removeClass(tm + '-state-down');
-								})
-								.hover(
-									function() {
-										// the *hover* effect.
-										// only on buttons that are not the "active" tab, or disabled
-										button
-											.not('.' + tm + '-state-active')
-											.not('.' + tm + '-state-disabled')
-											.addClass(tm + '-state-hover');
-									},
-									function() {
-										// undo the *hover* effect
-										button
-											.removeClass(tm + '-state-hover')
-											.removeClass(tm + '-state-down'); // if mouseleave happens before mouseup
-									}
-								);
+								});
 
 							groupChildren = groupChildren.add(button);
 						}
 					}
 				});
 
-				if (isOnlyButtons) {
-					groupChildren
-						.first().addClass(tm + '-corner-left').end()
-						.last().addClass(tm + '-corner-right').end();
-				}
-
 				if (groupChildren.length > 1) {
 					groupEl = $('<div/>');
 					if (isOnlyButtons) {
-						groupEl.addClass('fc-button-group');
+						groupEl.addClass('btn-group');
 					}
 					groupEl.append(groupChildren);
 					sectionEl.append(groupEl);
@@ -10252,9 +10316,9 @@ var BasicView = View.extend({
 		classes.unshift('fc-day-number');
 
 		return '' +
-			'<td class="' + classes.join(' ') + '" data-date="' + date.format() + '">' +
+			'<td class="' + classes.join(' ') + '" data-date="' + date.format() + '"><span>' +
 				date.date() +
-			'</td>';
+			'</span></td>';
 	},
 
 
@@ -10876,3 +10940,4 @@ fcViews.agendaWeek = {
 
 return fc; // export for Node/CommonJS
 });
+//@ sourceMappingURL=fullcalendar.js.map
