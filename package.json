@@ -1,5 +1,5 @@
 {
-  "name": "fullcalendar",
+  "name": "@s4rb/fullcalendar",
   "title": "FullCalendar",
   "version": "2.4.0",
   "description": "Full-sized drag & drop event calendar",
@@ -13,7 +13,7 @@
   "bugs": "http://fullcalendar.io/wiki/Reporting-Bugs/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/arshaw/fullcalendar.git"
+    "url": "https://github.com/S4RB/bootstrap-fullcalendar.git"
   },
   "license": {
     "type": "MIT",
